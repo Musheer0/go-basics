@@ -241,6 +241,72 @@ sum(arr...) // spread operator
 ```
 
 ---
+## 🎯 Pointers in Go
+
+Pointers = variables that **store memory addresses** instead of values.
+Think: instead of holding the pizza, they hold the **house address where pizza lives**.
+
+---
+
+### Key Symbols
+
+* `&` → **Address-of operator** → gets the memory address.
+* `*` → **Dereference operator** → accesses the value at that address.
+
+---
+
+### Example
+
+```go
+package main
+
+import "fmt"
+
+// Function takes a pointer to an int
+func printNum(num *int) {
+    *num = 5 // change the value at that memory address
+    fmt.Println("change", *num)
+}
+
+func main() {
+    num := 1
+    fmt.Println("before", num)
+
+    // &num passes the memory address of num
+    printNum(&num)
+
+    fmt.Println("after", num)
+}
+```
+
+---
+
+### Output
+
+```
+before 1
+change 5
+after 5
+```
+
+---
+
+### 💡 Explanation
+
+1. `num := 1` → normal variable (holds value `1`).
+2. `&num` → gives the memory address of `num`.
+3. `printNum(&num)` → passes that address into the function.
+4. Inside `printNum`, `*num = 5` changes the **actual value in memory**, so original `num` also updates.
+
+---
+
+### 🔑 Takeaways
+
+* Use pointers when you want to **modify the original variable** inside functions.
+* Without pointers, Go passes values by **copy** (like JS primitives).
+* Think of `&` as “give me the address” and `*` as “open the box at this address.”
+
+
 
 # ⚡ TL;DR Key Takeaways
 
