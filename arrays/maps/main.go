@@ -25,4 +25,7 @@ func main() {
 	for _,num:=range nums{
 		fmt.Print(num)
 	}
+	for i,c:=range "goland"{
+		fmt.Println(i,c)
+	}
 }
