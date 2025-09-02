@@ -615,3 +615,77 @@ const (
 * `iota` is great for **numeric enums** (fast, efficient).
 * String constants are better when you need **readable logs or debugging**.
 * Always wrap constants in a custom type (`status`) → improves type safety.
+
+## 🌀 Generics in Go
+
+Generics let you write **functions/structs** that can work with **any type** without duplicating code.
+
+---
+
+### Generic Functions
+
+```go
+func genericType[T comparable](items []T) {
+    for i, t := range items {
+        fmt.Println(i, t)
+    }
+}
+```
+
+* `[T comparable]` → type parameter.
+
+  * `T` is a placeholder for any type.
+  * `comparable` constraint → only types that support `==` and `!=`.
+  * Common constraints:
+
+    * `any` → literally any type.
+    * `comparable` → ints, strings, bools, etc.
+    * Union constraints → e.g., `[T int | float64]`.
+
+Usage:
+
+```go
+genericType([]int{3, 2, 1})
+genericType([]string{"m", "u"})
+```
+
+---
+
+### Generic Structs
+
+```go
+type genericStruct[T any] struct {
+    items []T
+}
+```
+
+* Defines a struct where `items` can hold **any type**.
+* When creating it, you decide the type:
+
+```go
+mg := genericStruct[string]{
+    items: []string{"m", "u"},
+}
+```
+
+---
+
+### Alternative Syntax with Union Types
+
+```go
+// Only allow bool or string
+func genericType[T bool | string](items []T) {
+    for i, t := range items {
+        fmt.Println(i, t)
+    }
+}
+```
+
+---
+
+### 💡 Key Takeaways
+
+* `[T any]` → universal placeholder for any type.
+* Add constraints to restrict what types can be passed.
+* Generics reduce **code duplication** (no need to write separate versions for `int`, `string`, etc.).
+* Great for reusable **data structures** (stacks, queues, trees) and algorithms.
