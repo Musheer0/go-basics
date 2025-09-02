@@ -306,12 +306,128 @@ after 5
 * Without pointers, Go passes values by **copy** (like JS primitives).
 * Think of `&` as “give me the address” and `*` as “open the box at this address.”
 
+---
 
+## 🏗️ Structs in Go
 
-# ⚡ TL;DR Key Takeaways
+Structs = **blueprints** for grouping related data.
+Think: JSON object but with type safety.
 
-* Go only has `for` loop but in 3 flavors.
-* Arrays = fixed size. Slices = dynamic arrays (use these 99% of the time).
-* Maps work like JS objects, but safer.
-* Functions can return multiple values + accept variadic args.
-* Type switches = Go’s way of handling polymorphism.
+---
+
+### Defining a Struct
+
+```go
+type order struct {
+    id          string
+    amount      float32
+    status      string
+    created_at  time.Time
+    customer_id string
+}
+```
+
+---
+
+### Adding Methods to Structs
+
+```go
+func (o *order) changeStatus(status string) {
+    o.status = status
+}
+```
+
+* `func (o *order)` → receiver function (like methods in OOP).
+* Pointer `*order` ensures the original struct gets updated.
+
+---
+
+### Constructor-like Function (Go has no real constructors)
+
+```go
+func newOrder(o order) *order {
+    myorder := order{
+        id:         o.id,
+        status:     o.status,
+        created_at: o.created_at,
+        amount:     o.amount + (o.amount * 0.15), // add 15% tax
+        customer_id:"user_bc328fca-4ec2-48d7-b313-206dbe7b9d99", // from session/uuid
+    }
+    return &myorder
+}
+```
+
+* Go doesn’t have constructors → we **duct-tape it** with helper functions (prefix `new` for convention).
+
+---
+
+### Nested Structs
+
+```go
+type customer struct {
+    name           string
+    age            int
+    is_plus_member bool
+    orders         []order
+    order_count    int
+}
+```
+
+---
+
+### Initializer for Nested Struct
+
+```go
+func newCustomer(c customer) *customer {
+    mycustomer := c
+    mycustomer.order_count = len(c.orders)
+    return &mycustomer
+}
+```
+
+---
+
+### Inline Structs (for one-time use)
+
+```go
+inlineStruct := struct {
+    name string
+    age  int
+}{"musheer", 17}
+fmt.Println(inlineStruct)
+```
+
+* Useful when you need a quick struct without defining a type.
+
+---
+
+### Example in Action
+
+```go
+initializedOrder := *newOrder(order{
+    id:        "23DQ",
+    amount:    23.4,
+    status:    "otw",
+    created_at: time.Now(),
+})
+
+initializedOrder.changeStatus("out for delivery")
+
+mycustomer := *newCustomer(customer{
+    name:           "musheer",
+    is_plus_member: true,
+    orders:         []order{initializedOrder},
+})
+
+fmt.Println(mycustomer)
+```
+
+---
+
+### 💡 Key Takeaways
+
+* Structs = Go’s way of modeling objects.
+* Methods use **receiver functions** (pointer receiver if you wanna mutate data).
+* No built-in constructors → use custom `newXxx` functions.
+* Nested structs let you embed relationships.
+* Inline structs are great for quick, temporary shapes.
