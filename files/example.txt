@@ -1,0 +1,17 @@
+
+```bash
+go work init ./project1 ./project2
+```
+
+This lets you work across local modules without publishing to GitHub.
+
+---
+
+⚡ Cheatcode to remember:
+
+* `go mod init` → start project.
+* `go get` → grab internet pkg.
+* `go run` → yeet code.
+* `Capitalize` → make it public.
+
+---
