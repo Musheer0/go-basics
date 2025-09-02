@@ -689,3 +689,76 @@ func genericType[T bool | string](items []T) {
 * Add constraints to restrict what types can be passed.
 * Generics reduce **code duplication** (no need to write separate versions for `int`, `string`, etc.).
 * Great for reusable **data structures** (stacks, queues, trees) and algorithms.
+
+
+## ⚡ Goroutines + WaitGroups
+
+Go handles concurrency using **goroutines** (lightweight threads) and sync tools like **WaitGroup** to make sure things finish before the program exits.
+
+---
+
+### Goroutines
+
+```go
+go task(i, &wg)
+```
+
+* `go` → runs `task` in a **separate goroutine**.
+* Super lightweight (not like OS threads). You can spawn thousands without choking.
+* But: once `main()` ends → all goroutines die instantly. That’s why we need a **WaitGroup**.
+
+---
+
+### WaitGroup
+
+```go
+var wg sync.WaitGroup
+```
+
+* `wg.Add(1)` → tells the WaitGroup *“one more goroutine to wait for.”*
+* `wg.Done()` → signals *“this goroutine finished.”*
+* `wg.Wait()` → blocks the main function until all added goroutines are done.
+
+---
+
+### Full Flow
+
+```go
+func task(i int, wg *sync.WaitGroup) {
+    defer wg.Done() // always mark completion
+    fmt.Println(i)
+}
+
+func main() {
+    var wg sync.WaitGroup
+    for i := 0; i <= 10; i++ {
+        wg.Add(1)
+        go task(i, &wg)
+    }
+    wg.Wait() // wait until all goroutines finish
+}
+```
+
+---
+
+### Output
+
+Order is **not guaranteed** because goroutines run concurrently:
+
+```
+3
+1
+0
+5
+2
+...
+```
+
+---
+
+### 💡 Key Takeaways
+
+* `go funcName()` → starts a goroutine.
+* Use `sync.WaitGroup` to stop `main` from exiting early.
+* Always pair `wg.Add(1)` with a `wg.Done()` inside the goroutine.
+* Execution order is random → don’t rely on it unless you use sync primitives (channels, mutex, etc.).
