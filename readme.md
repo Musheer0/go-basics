@@ -431,3 +431,110 @@ fmt.Println(mycustomer)
 * No built-in constructors → use custom `newXxx` functions.
 * Nested structs let you embed relationships.
 * Inline structs are great for quick, temporary shapes.
+
+---
+
+## 🔌 Interfaces in Go
+
+Interfaces in Go = **contracts**.
+They define **what methods must exist**, not how they’re implemented.
+Think: “If you sign this contract, you MUST have these functions.”
+
+---
+
+### Defining an Interface
+
+```go
+type ipayment interface {
+    pay(amt float32)
+    refunc(amt float32, accnt string)
+}
+```
+
+* Any type that implements **all methods** in `ipayment` → is considered an `ipayment`.
+* No need to explicitly say `implements` (like Java/C#). Go does it **implicitly**.
+
+---
+
+### Using Interfaces in Structs
+
+```go
+type payment struct {
+    gateway ipayment
+}
+
+func (p payment) paymoney(amt float32) {
+    p.gateway.pay(amt)
+}
+```
+
+* `payment` struct has a `gateway` field of type `ipayment`.
+* This means it can accept **any type** that satisfies the interface (PayPal, Razorpay, etc.).
+
+---
+
+### Implementation Example 1: PayPal
+
+```go
+type paypal struct{}
+
+func (p paypal) pay(amt float32) {
+    fmt.Println("method: paypal", amt)
+}
+
+func (p paypal) refunc(amt float32, acct string) {
+    fmt.Println("refund\nmethod paypal amount:", amt, "account id", acct)
+}
+```
+
+* Implements both `pay` and `refunc` → ✅ satisfies `ipayment`.
+
+---
+
+### Implementation Example 2: Razorpay
+
+```go
+type razorpay struct{}
+
+func (p razorpay) pay(amt float32) {
+    fmt.Println("method: razorpay", amt)
+}
+```
+
+⚠️ `razorpay` **does not implement** `refunc`.
+→ So it **cannot be used as `ipayment`** (compiler error if you try).
+
+---
+
+### Using It All Together
+
+```go
+func main() {
+    newpayment := payment{
+        gateway: paypal{}, // inject PayPal
+    }
+    newpayment.paymoney(45.66)
+
+    // Can also directly call methods from gateway
+    newpayment.gateway.refunc(33.22, "user_e3jd3s2")
+}
+```
+
+#### Output:
+
+```
+method: paypal 45.66
+refund
+method paypal amount: 33.22 account id  user_e3jd3s2
+```
+
+---
+
+### 💡 Key Takeaways
+
+* Interfaces = contracts (define *what* methods must exist).
+* Structs don’t declare they “implement” → compiler checks if methods match.
+* This enables **polymorphism**: same function (`paymoney`) can work with different payment gateways.
+* If a struct is missing even one method → ❌ it doesn’t satisfy the interface.
+* Interfaces + struct embedding = Go’s version of flexible OOP.
+
