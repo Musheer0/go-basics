@@ -1152,3 +1152,122 @@ This lets you work across local modules without publishing to GitHub.
 * `Capitalize` → make it public.
 
 ---
+## 📂 File & Directory Operations in Go (`os` package)
+
+Go’s `os` package gives you low-level control over files and folders.  
+Think of it like `fs` in Node.js or `os` in Python — but strict and type-safe.
+
+---
+
+### 🛠 Common File Ops
+
+#### 1. Open & Read File (manual way)
+```go
+f, err := os.Open("example.txt")
+handleError(err)
+
+info, _ := f.Stat() // metadata about file
+buf := make([]byte, info.Size())
+
+_, err = f.Read(buf) // load file content into buffer
+handleError(err)
+
+fmt.Println("File content:", string(buf))
+````
+
+* `os.Open` → opens file.
+* `Stat()` → metadata (size, name, modified time).
+* `Read()` → loads raw bytes into buffer.
+
+---
+
+#### 2. Quick Read (small files)
+
+```go
+data, err := os.ReadFile("example.txt")
+handleError(err)
+fmt.Println(string(data))
+```
+
+⚡ Loads entire file into memory (don’t use for giant files).
+
+---
+
+#### 3. List Directory Contents
+
+```go
+dir, _ := os.Open("../")
+files, _ := dir.ReadDir(-1)
+
+for _, fi := range files {
+    fmt.Println(fi.Name(), fi.IsDir())
+}
+```
+
+* `ReadDir(-1)` → reads all files.
+* `IsDir()` → tells if it’s folder or file.
+
+---
+
+#### 4. Create File & Write
+
+```go
+f, _ := os.Create("golang.json")
+defer f.Close()
+
+f.WriteString(`[{"name":"golang"}]`)
+```
+
+* `os.Create` → overwrites if file exists.
+
+---
+
+#### 5. Copy File (manual buffer copy)
+
+```go
+src, _ := os.Open("golang.json")
+dest, _ := os.Create("dest.json")
+
+reader := bufio.NewReader(src)
+writer := bufio.NewWriter(dest)
+
+for {
+    b, err := reader.ReadByte()
+    if err != nil {
+        if err.Error() == "EOF" { break }
+        panic(err)
+    }
+    writer.WriteByte(b)
+}
+writer.Flush()
+```
+
+---
+
+#### 6. Delete File
+
+```go
+os.Remove("dest.json")
+```
+
+---
+
+### 🔑 Takeaways
+
+* `os.Open` = read-only.
+* `os.Create` = new file (or overwrite).
+* `os.ReadFile` = quick load into memory.
+* `os.Remove` = delete.
+* Always **`defer file.Close()`** to avoid leaks.
+* Use `bufio` when working with streams (efficient read/write).
+
+---
+
+⚡ Bonus: You can also set **permissions** when creating files with `os.OpenFile` → gives full control (append, read/write, chmod, etc.).
+
+```go
+f, _ := os.OpenFile("example.txt", os.O_APPEND|os.O_WRONLY, 0644)
+```
+
+```
+```
