@@ -538,3 +538,80 @@ method paypal amount: 33.22 account id  user_e3jd3s2
 * If a struct is missing even one method → ❌ it doesn’t satisfy the interface.
 * Interfaces + struct embedding = Go’s version of flexible OOP.
 
+
+---
+## 🚦 Enums with `const` and `iota` in Go
+
+Go doesn’t have native **enum** types like other languages, but we can simulate them using `const` + custom types.
+
+---
+
+### Defining a Custom Type + Constants with `iota`
+
+```go
+type status int
+
+const (
+    online status = iota
+    offline
+    busy
+    disabled
+)
+```
+
+* `type status int` → creates a **new type** (based on `int`).
+* `iota` → auto-incrementing counter, resets to `0` for each `const` block.
+* So here:
+
+  * `online = 0`
+  * `offline = 1`
+  * `busy = 2`
+  * `disabled = 3`
+
+---
+
+### Using It
+
+```go
+func printStatus(s status) {
+    fmt.Println("user is", s)
+}
+
+func main() {
+    printStatus(online)
+}
+```
+
+#### Output:
+
+```
+user is 0
+```
+
+⚠️ By default, printing gives the **int value** (`0`, `1`, …).
+
+---
+
+### Alternative: String Constants
+
+```go
+type status string
+
+const (
+    online   status = "online"
+    offline  status = "offline"
+    busy     status = "busy"
+    disabled status = "disabled"
+)
+```
+
+* Here `status` is a string type.
+* Printing gives **human-readable values**.
+
+---
+
+### 💡 Key Takeaways
+
+* `iota` is great for **numeric enums** (fast, efficient).
+* String constants are better when you need **readable logs or debugging**.
+* Always wrap constants in a custom type (`status`) → improves type safety.
