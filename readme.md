@@ -899,3 +899,89 @@ func sendOnly(em chan<- string) {
 * Always `close()` channels when you’re done sending.
 * `select` is your friend for multiplexing multiple channels.
 * Directional channels (`<-chan`, `chan<-`) are great for clean APIs.
+
+## 🔒 Mutex (Mutual Exclusion) in Go
+
+When multiple goroutines try to update the same variable at the same time → **race condition** happens.
+A `sync.Mutex` (lock) prevents that by allowing **only one goroutine** to access the critical section at a time.
+
+---
+
+### Example: Safe Counter with Mutex
+
+```go
+package main
+
+import (
+	"fmt"
+	"sync"
+)
+
+type test struct {
+	sum int
+	mu  sync.Mutex
+}
+
+func (p *test) add(wb *sync.WaitGroup) {
+	defer func() {
+		wb.Done()
+		p.mu.Unlock() // unlock after done
+	}()
+
+	p.mu.Lock()     // lock before modifying shared data
+	p.sum += 1
+}
+
+func main() {
+	var wb sync.WaitGroup
+	p := test{sum: 0}
+
+	for i := 0; i <= 100; i++ {
+		wb.Add(1)
+		go p.add(&wb)
+	}
+
+	wb.Wait()
+	fmt.Println(p.sum)
+}
+```
+
+---
+
+### 🛠️ Breakdown
+
+* `mu sync.Mutex` → the lock itself.
+* `p.mu.Lock()` → blocks other goroutines until we’re done.
+* `p.mu.Unlock()` → releases lock so next goroutine can enter.
+* Always `defer Unlock()` so you don’t forget to release.
+
+---
+
+### ⚠️ Without Mutex
+
+```go
+p.sum += 1
+```
+
+If many goroutines run this at once → some increments get lost, final `sum` < expected.
+
+---
+
+### ✅ With Mutex
+
+* Only one goroutine can increment at a time.
+* Ensures `sum` ends up exactly `101`.
+
+---
+
+### 🔑 Key Takeaways
+
+* Use `sync.Mutex` for safe access to **shared state**.
+* Always lock → update → unlock.
+* Combine with `sync.WaitGroup` to wait for goroutines to finish.
+* Forgetting `Unlock` = **deadlock** (everything freezes).
+
+---
+
+Want me to also add the **`sync.RWMutex`** version (for read-heavy code where multiple reads can happen in parallel but writes still lock)?
+
