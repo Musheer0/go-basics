@@ -762,3 +762,140 @@ Order is **not guaranteed** because goroutines run concurrently:
 * Use `sync.WaitGroup` to stop `main` from exiting early.
 * Always pair `wg.Add(1)` with a `wg.Done()` inside the goroutine.
 * Execution order is random → don’t rely on it unless you use sync primitives (channels, mutex, etc.).
+
+
+## 📡 Channels in Go
+
+Channels are like **pipes** that goroutines can use to send data back and forth. They’re Go’s built-in concurrency communication tool.
+
+---
+
+### 🔑 Creating a Channel
+
+```go
+mychan := make(chan int) // unbuffered channel
+```
+
+* `chan int` → channel that only carries `int`s.
+* By default, channels are **unbuffered** (send blocks until receive is ready).
+
+---
+
+### 📨 Sending and Receiving
+
+```go
+mychan <- 5      // send value into channel
+val := <-mychan  // receive value from channel
+```
+
+* If no one’s on the other end, it blocks (waits).
+
+---
+
+### Example: Using Channels Instead of `WaitGroup`
+
+```go
+func sendMail(mailchan chan bool) {
+    defer func() { mailchan <- true }()
+    fmt.Println("email sent")
+}
+
+func main() {
+    emailChan := make(chan bool)
+    go sendMail(emailChan)
+    <-emailChan // wait for signal
+}
+```
+
+* Perfect for **waiting on one goroutine**.
+
+---
+
+### Example: Passing Data with Channels
+
+```go
+func add(numChan chan int, n1 int, n2 int) {
+    numChan <- n1 + n2
+}
+
+func main() {
+    mychan := make(chan int)
+    go add(mychan, 4, 5)
+    res := <-mychan
+    fmt.Println(res) // 9
+}
+```
+
+---
+
+### ⚙️ Closing Channels
+
+```go
+close(emailChan)
+```
+
+* Closes a channel → signals that **no more values** will be sent.
+* Needed for `range` over a channel, otherwise it blocks forever.
+
+---
+
+### Buffered Channels
+
+```go
+emailChan := make(chan string, 10) // holds up to 10 messages
+```
+
+* Doesn’t block until buffer is full.
+* Useful when you want async queuing.
+
+---
+
+### ⏳ `select` for Multiple Channels
+
+```go
+chan1 := make(chan int)
+chan2 := make(chan string)
+
+go func() { chan1 <- 10 }()
+go func() { chan2 <- "thee" }()
+
+for i := 0; i < 2; i++ {
+    select {
+    case val1 := <-chan1:
+        fmt.Println(val1)
+    case val2 := <-chan2:
+        fmt.Println(val2)
+    }
+}
+```
+
+* `select` waits for whichever channel is ready first.
+* Think of it like a **switch-case for channels**.
+
+---
+
+### 🔒 Directional Channels
+
+```go
+func receiveOnly(em <-chan string) {
+    msg := <-em // ✅ only receive allowed
+}
+
+func sendOnly(em chan<- string) {
+    em <- "hi"  // ✅ only send allowed
+}
+```
+
+* `<-chan T` → **receive-only**.
+* `chan<- T` → **send-only**.
+* Adds **type safety** → prevents accidental misuse.
+
+---
+
+### 💡 Key Takeaways
+
+* Channels let goroutines communicate safely.
+* Unbuffered = sync handoff, buffered = async queue.
+* Always `close()` channels when you’re done sending.
+* `select` is your friend for multiplexing multiple channels.
+* Directional channels (`<-chan`, `chan<-`) are great for clean APIs.
